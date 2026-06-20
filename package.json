@@ -1,0 +1,15 @@
+{
+  "name": "project-gnothology-core-engine",
+  "version": "1.0.0",
+  "description": "Automated numerical matrix analytics system for high-margin SaaS platforms",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.4",
+    "express": "^4.21.2",
+    "handlebars": "^4.7.8",
+    "puppeteer": "^24.3.0"
+  }
+}
