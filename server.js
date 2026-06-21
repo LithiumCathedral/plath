@@ -1,32 +1,11 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
 const { spawn } = require('child_process');
-const sqlite3 = require('sqlite3').verbose();
-
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Initialize SQLite database connection to a local file
-const dbPath = path.join(__dirname, 'telemetry.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Database connection crash:', err);
-    } else {
-        console.log('// PLATH Local SQLite Engine initialized.');
-        db.run(`CREATE TABLE IF NOT EXISTS profiles (
-            sessionId TEXT PRIMARY KEY,
-            email TEXT,
-            fullName TEXT,
-            currentName TEXT,
-            birthDate TEXT,
-            timestamp INTEGER
-        )`);
-    }
-});
 
 const archetypeRepository = {
     "Harmonic Convergence": {
@@ -61,50 +40,42 @@ const lpRepository = {
     33: { title: "Master Conduit", insight: "You serve as an absolute harmonic stabilizer, radiating transformative systemic alignment across widespread networks." }
 };
 
+// Main processing engine endpoint
 app.post('/generate-report', (req, res) => {
-    const { email, fullName, currentName, birthDate } = req.body;
+    try {
+        const { email, fullName, currentName, birthDate } = req.body;
 
-    if (!email || !fullName || !currentName || !birthDate) {
-        return res.status(400).send('Missing critical identity anchors.');
-    }
-
-    const sessionId = crypto.randomBytes(16).toString('hex');
-    const timestamp = Date.now();
-
-    const sql = `INSERT INTO profiles (sessionId, email, fullName, currentName, birthDate, timestamp) VALUES (?, ?, ?, ?, ?, ?)`;
-    db.run(sql, [sessionId, email, fullName, currentName, birthDate, timestamp], (err) => {
-        if (err) {
-            console.error('Database write state failure:', err);
-            return res.status(500).send('Database storage write fault.');
+        if (!fullName || !currentName || !birthDate) {
+            return res.status(400).send('Missing identity parameters.');
         }
-        res.redirect(`/report/${sessionId}`);
-    });
+
+        // Pack the parameters into an encrypted Base64 string block
+        const dataPayload = JSON.stringify({ email, fullName, currentName, birthDate });
+        const encodedToken = Buffer.from(dataPayload).toString('base64url');
+
+        // Redirect instantly to the shareable query permalink
+        res.redirect(`/report?v=${encodedToken}`);
+    } catch (err) {
+        res.status(500).send("Generation routine collapsed.");
+    }
 });
 
-// ... (Keep your database initialization and app.post exactly as they are)
+// The Shareable multi-device link interface route
+app.get('/report', (req, res) => {
+    try {
+        const token = req.query.v;
+        if (!token) return res.status(400).send("Missing security token parameters.");
 
-app.get('/report/:sessionId', (req, res) => {
-    const { sessionId } = req.params;
+        // Decode string back into raw system values safely
+        const rawDecoded = Buffer.from(token, 'base64url').toString('utf8');
+        const { email, fullName, currentName, birthDate } = JSON.parse(rawDecoded);
 
-    const sql = `SELECT * FROM profiles WHERE sessionId = ?`;
-    db.get(sql, [sessionId], (err, row) => {
-        if (err || !row) {
-            console.error('Database read failure or session missing:', err);
-            return res.status(404).send('Telemetry profile not found.');
-        }
-
-        // Defensive string isolation to guard against null database rows
-        const fullNameRaw = row.fullName || "";
-        const currentNameRaw = row.currentName || "";
-        const birthDateRaw = row.birthDate || "";
-
-        // Ensure the date split contains all three elements securely
-        const dateParts = birthDateRaw.split('-');
-        const formattedDate = dateParts.length === 3 ? `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}` : "09-14-1991";
+        const [year, month, day] = birthDate.split('-');
+        const formattedDate = `${month}-${day}-${year}`;
 
         const inputData = JSON.stringify({
-            full_birth_name: fullNameRaw,
-            current_name: currentNameRaw,
+            full_birth_name: fullName,
+            current_name: currentName,
             dob: formattedDate
         });
 
@@ -113,24 +84,19 @@ app.get('/report/:sessionId', (req, res) => {
 
         pythonProcess.stdin.write(inputData);
         pythonProcess.stdin.end();
-        
         pythonProcess.stdout.on('data', (data) => { pythonData += data.toString(); });
 
         pythonProcess.on('close', (code) => {
-            if (code !== 0) {
-                console.error(`Python calculation engine halted with error code: ${code}`);
-                return res.status(500).send("Engine calculation failure.");
-            }
+            if (code !== 0) return res.status(500).send("Engine compilation failed.");
 
             try {
                 const metrics = JSON.parse(pythonData);
                 const arch = archetypeRepository[metrics.archetype] || archetypeRepository["Dynamic Adaptation"];
-                const lp = lpRepository[metrics.life_path] || { title: "Systemic Core", insight: "Baseline optimization active." };
+                const lp = lpRepository[metrics.life_path] || { title: "Core Node", insight: "Optimization baseline." };
 
-                // Built defensively: Fallbacks ensure NO property can ever read as undefined
                 const payload = {
-                    fullName: String(fullNameRaw).toUpperCase(),
-                    currentName: String(currentNameRaw).toUpperCase(),
+                    fullName: String(fullName).toUpperCase(),
+                    currentName: String(currentName).toUpperCase(),
                     birthDate: String(formattedDate),
                     matrixId: String(`_CORE_${metrics.hcv || 0}_${metrics.life_path || 0}`),
                     uspcScore: String(metrics.uspc_score || "0.0%"),
@@ -147,35 +113,28 @@ app.get('/report/:sessionId', (req, res) => {
                     alignment: String(metrics.alignment_coefficient || 0),
                     tensionGap: String(metrics.tension_gap || 0),
                     missingVectors: String(metrics.missing_vectors || "None"),
-                    missingMeanings: String(metrics.missing_meanings || "All active.")
+                    missingMeanings: String(metrics.missing_meanings || "All vectors active.")
                 };
 
                 const templatePath = path.join(__dirname, 'report-template.html');
                 let htmlResponse = fs.readFileSync(templatePath, 'utf8');
 
-                // Completely robust loop: Safely strips out tokens without crashing if a key acts up
                 Object.keys(payload).forEach(key => {
                     const regex = new RegExp(`{{${key}}}`, 'g');
-                    const safeValue = payload[key] !== undefined && payload[key] !== null ? payload[key] : "";
-                    htmlResponse = htmlResponse.replace(regex, safeValue);
+                    htmlResponse = htmlResponse.replace(regex, payload[key]);
                 });
 
                 res.send(htmlResponse);
-
             } catch (jsonErr) {
-                console.error("JSON parsing or regex injection failure:", jsonErr);
                 res.status(500).send("Data layout compilation error.");
             }
         });
-    });
+    } catch (e) {
+        res.status(500).send("Report assembly error.");
+    }
 });
 
-// Root check routing
-app.get('/', (req, res) => {
-    res.send("// PLATH Secure Engine Warehouse is live.");
-});
+app.get('/', (db, res) => { res.send("// PLATH Micro-Engine live."); });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`// System running smoothly on port ${PORT}`);
-});
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => { console.log(`// System listening on port ${PORT}`); });
