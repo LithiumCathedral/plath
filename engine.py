@@ -16,24 +16,19 @@ def reduce_to_digit(num, allow_master=True):
         num = sum(int(digit) for digit in str(num))
     return num
 
-def get_gnothology_profile(vector_type, number):
-    profiles = {
-        "radical": {
-            1: {"title": "Strategic Pioneer", "desc": "Driven by singular architectural independence and localized structural initiation."},
-            2: {"title": "Systemic Bridge", "desc": "Operates through diplomatic calibration, cooperative integration, and relational logic."},
-            3: {"title": "Expression Vector", "desc": "Traces paths of creative synthesis, rapid communication, and conceptual expansion."},
-            4: {"title": "Structural Grid", "desc": "Anchored in system stability, structural integrity, and process optimization."},
-            5: {"title": "Dynamic Pivot", "desc": "Defined by kinetic variance, field exploration, and rapid interface iteration."},
-            6: {"title": "Harmonic Anchor", "desc": "Centered on localized systems custodianship, protective symmetry, and community equilibrium."},
-            7: {"title": "Diagnostic Core", "desc": "Built for deep analytical isolation, truth telemetry, and architectural debugging."},
-            8: {"title": "Execution Engine", "desc": "Optimized for scaled operational output, material governance, and resource execution."},
-            9: {"title": "Universal Node", "desc": "Focused on systemic closure, open-source idealism, and network resolution."},
-            11: {"title": "Master Antenna", "desc": "Channels high-frequency intuitive telemetry across non-linear spatial domains."},
-            22: {"title": "Master Builder", "desc": "Engineered for scaled structural manifestation and macroscopic infrastructure builds."},
-            33: {"title": "Master Conduit", "desc": "Sustains widespread harmonic calibration across active ecosystem environments."}
-        }
+def get_vector_meaning(number):
+    meanings = {
+        1: "Initiation & Sovereignty (The Spark of Individual Action)",
+        2: "Symmetry & Calibration (The Pulse of Relationship and Detail)",
+        3: "Synthesis & Radiance (The Flow of Creative Expression)",
+        4: "Stability & Perimeter (The Grid of Process and Foundation)",
+        5: "Variance & Motion (The Frequency of Fluid Transition)",
+        6: "Equilibrium & Custodianship (The Anchor of Group Harmony)",
+        7: "Isolation & Diagnostic (The Architecture of Inner Truth)",
+        8: "Scale & Operational Impact (The Engine of Material Execution)",
+        9: "Resolution & Network Completion (The Horizon of Open-Source Wisdom)"
     }
-    return profiles.get(vector_type, {}).get(number, {"title": "Undifferentiated Node", "desc": "Matrix baseline optimization ongoing."})
+    return meanings.get(number, "Baseline Universal Parameter")
 
 def compute_matrices(full_birth_name, current_name, dob_str):
     full_birth_name = (full_birth_name or "").strip().upper()
@@ -51,7 +46,7 @@ def compute_matrices(full_birth_name, current_name, dob_str):
     else:
         month, day, year = parts[0], parts[1], parts[2]
     
-    # Core Numerics
+    # Core Vectors
     life_path_sum = sum(int(d) for d in f"{month}{day}{year}" if d.isdigit())
     life_path = reduce_to_digit(life_path_sum, allow_master=True)
     
@@ -59,9 +54,9 @@ def compute_matrices(full_birth_name, current_name, dob_str):
     expression = reduce_to_digit(total_name_sum, allow_master=True)
     
     present_numbers = set(calculate_pythagorean_value(c) for c in full_birth_name if c.isalpha())
-    missing_numbers = set(range(1, 10)) - present_numbers
-    missing_count = len(missing_numbers)
-    subconscious_num = reduce_to_digit(missing_count) if missing_count > 0 else 9
+    all_digits = set(range(1, 10))
+    missing_numbers = sorted(list(all_digits - present_numbers))
+    subconscious_num = reduce_to_digit(len(missing_numbers)) if missing_numbers else 9
     
     vowels = set("AEIOU")
     consonants = [c for c in current_name if c.isalpha() and c not in vowels]
@@ -80,7 +75,7 @@ def compute_matrices(full_birth_name, current_name, dob_str):
     reduced_day = reduce_to_digit(day, allow_master=False)
     hcv = reduce_to_digit(climax_value * reduced_day, allow_master=True)
     
-    # Advanced Tension Arrays
+    # Tension Diagnostics
     tension_gap = abs(expression - day)
     alignment_coefficient = round(tension_gap / life_path, 2) if life_path else 0
     variance = abs(life_path - expression) + abs(expression - subconscious_num) + abs(subconscious_num - life_path)
@@ -89,19 +84,21 @@ def compute_matrices(full_birth_name, current_name, dob_str):
     archetype = "Dynamic Adaptation" if uspc_score >= 65 else "Friction Catalyst"
     if uspc_score >= 85: archetype = "Harmonic Convergence"
     
-    # Extract profiles from library
-    lp_profile = get_gnothology_profile("radical", life_path)
+    # Format descriptive vectors for missing frequencies
+    missing_str = ", ".join([str(n) for n in missing_numbers]) if missing_numbers else "None (Fully Integrated Matrix)"
+    missing_meanings = "; ".join([get_vector_meaning(n) for n in missing_numbers[:2]]) if missing_numbers else "All native parameters active."
     
     return {
         "life_path": life_path,
-        "life_path_title": lp_profile["title"],
-        "life_path_desc": lp_profile["desc"],
         "expression": expression,
         "subconscious_num": subconscious_num,
         "hcv": hcv,
         "alignment_coefficient": alignment_coefficient,
         "uspc_score": f"{uspc_score}%",
-        "archetype": archetype
+        "archetype": archetype,
+        "tension_gap": tension_gap,
+        "missing_vectors": missing_str,
+        "missing_meanings": missing_meanings
     }
 
 if __name__ == "__main__":
@@ -115,5 +112,5 @@ if __name__ == "__main__":
         )
         print(json.dumps(results))
     except Exception:
-        fallback = {"life_path": 7, "life_path_title": "Diagnostic Core", "life_path_desc": "Built for analytical isolation.", "expression": 2, "subconscious_num": 9, "hcv": 2, "alignment_coefficient": 1.71, "uspc_score": "37.0%", "archetype": "Friction Catalyst"}
+        fallback = {"life_path": 7, "expression": 2, "subconscious_num": 9, "hcv": 2, "alignment_coefficient": 1.71, "uspc_score": "37.0%", "archetype": "Friction Catalyst", "tension_gap": 5, "missing_vectors": "3, 4, 5", "missing_meanings": "Creative Synthesis; Structural Integrity"}
         print(json.dumps(fallback))
