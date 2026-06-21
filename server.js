@@ -1,60 +1,64 @@
 const express = require('express');
-const { spawn } = require('child_process');
-const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
-const handlebars = require('handlebars');
-const sgMail = require('@sendgrid/mail');
-
+const fs = require('fs');
 const app = express();
-app.use(express.json());
-sgMail.setApiKey(process.env.SENDGRID_API_KEY || 'MOCK_KEY');
 
-app.post('/api/generate', async (req, res) => {
-    const { full_birth_name, current_name, dob } = req.body;
-    
-    // 1. Invoke the python child runtime logic engine process
-    const pyProcess = spawn('python3', ['engine.py']);
-    let outputData = '';
-    
-    pyProcess.stdin.write(JSON.stringify({ full_birth_name, current_name, dob }));
-    pyProcess.stdin.end();
-    
-    pyProcess.stdout.on('data', (data) => {
-        outputData += data.toString();
-    });
-    
-    pyProcess.on('close', async (code) => {
-        if (code !== 0) return res.status(500).json({ error: "Calculation execution failed" });
-        
-        const matrixPayload = JSON.parse(outputData);
-        
-        // 2. Read HTML architecture layouts and inject computed payload values
-        const templateSrc = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf-8');
-        const compiledTemplate = handlebars.compile(templateSrc);
-        const htmlContext = compiledTemplate({ ...matrixPayload, customer_name: current_name });
-        
-        // 3. Render pixel-perfect documents inside buffer space memory
-        let pdfBuffer;
-        try {
-            const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
-            const page = await browser.newPage();
-            await page.setContent(htmlContext, { waitUntil: 'networkidle0' });
-            pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
-            await browser.close();
-        } catch (err) {
-            console.error("Puppeteer fail, proceeding with payload fallback for active UI client nodes:", err);
-            pdfBuffer = Buffer.from("Fallback Verification Asset Structural Log");
+// Crucial for parsing incoming Vercel form submissions
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Main calculation route
+app.post('/generate-report', (req, res) => {
+    try {
+        const { fullName, currentName, birthDate } = req.body;
+
+        if (!fullName || !currentName || !birthDate) {
+            return res.status(400).send('Missing critical data anchors.');
         }
-        
-        // 4. Return immediately to minimize transaction latency targets
-        return res.status(200).json({
-            success: true,
-            visualPayload: matrixPayload,
-            pdfBackupLog: "Buffer generated cleanly"
-        });
-    });
+
+        // 1. Dynamic Matrix Calculation Engine
+        const cleanName = fullName.replace(/[^a-zA-Z]/g, '').toUpperCase();
+        const matrixSeed = cleanName.length * (new Date(birthDate).getDate() || 1);
+        const matrixId = `#${matrixSeed}-PRX`;
+
+        // 2. Generate Data-Specific Personal Narrative
+        const parsedDate = new Date(birthDate);
+        const year = parsedDate.getFullYear();
+        const monthName = parsedDate.toLocaleString('default', { month: 'long' });
+
+        const uniqueStory = `
+            The system initializes under the structural anchor of the primary matrix for <strong>${fullName}</strong>. 
+            Tracing architectural lineage back through the specified temporal milestone of <strong>${monthName} ${year}</strong>, 
+            the telemetry vectors reveal a deeply synchronized convergence point.
+            <br><br>
+            As the core handle transitions from its historical blueprint into the current active node alias <strong>${currentName}</strong>, 
+            a secondary footprint emerges within the shared workspace. The engine has successfully synthesized these flat database coordinates, 
+            stripping out traditional folder hierarchies to map exactly where this identity node builds momentum next.
+            <br><br>
+            Telemetry resolution finalized. The data ownership loop remains entirely secure, uncompromised, and perfectly flat.
+        `;
+
+        // 3. Load HTML Template and Inject Variables
+        const templatePath = path.join(__dirname, 'report-template.html');
+        let htmlResponse = fs.readFileSync(templatePath, 'utf8');
+
+        htmlResponse = htmlResponse
+            .replace(/{{fullName}}/g, fullName.toUpperCase())
+            .replace(/{{currentName}}/g, currentName.toUpperCase())
+            .replace(/{{birthDate}}/g, birthDate)
+            .replace(/{{matrixId}}/g, matrixId)
+            .replace(/{{generatedStory}}/g, uniqueStory);
+
+        res.send(htmlResponse);
+
+    } catch (error) {
+        console.error("Engine Fault: ", error);
+        res.status(500).send("Internal System Error: Telemetry engine collapsed.");
+    }
 });
 
+// Railway requires listening on process.env.PORT
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Project Gnothology Matrix engine operational on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`// PLATH Engine running smoothly on port ${PORT}`);
+});
