@@ -17,9 +17,13 @@ def reduce_to_digit(num, allow_master=True):
     return num
 
 def compute_matrices(full_birth_name, current_name, dob_str):
-    # Parse DOB Components (Format expected: MM-DD-YYYY)
+    # Smart DOB Parser: Handles both MM-DD-YYYY and YYYY-MM-DD seamlessly
     parts = [int(p) for p in dob_str.split('-')]
-    month, day, year = parts[0], parts[1], parts[2]
+    
+    if parts[0] > 12:  # If the first number is a 4-digit year (YYYY-MM-DD)
+        year, month, day = parts[0], parts[1], parts[2]
+    else:              # If the first number is a month (MM-DD-YYYY)
+        month, day, year = parts[0], parts[1], parts[2]
     
     # Life Path Number
     life_path_sum = sum(int(d) for d in f"{month}{day}{year}")
@@ -80,7 +84,6 @@ def compute_matrices(full_birth_name, current_name, dob_str):
     }
 
 if __name__ == "__main__":
-    # Expects execution payload data via standard input streams
     input_data = json.loads(sys.stdin.read())
     results = compute_matrices(
         input_data['full_birth_name'],
