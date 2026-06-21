@@ -13,10 +13,10 @@
             --orange: #FF3300;
             --black: #000000;
             --dark: #0A0A0A;
-            --grey: #161616;
-            --border: #262626;
+            --grey: #121212;
+            --border: #222222;
             --text: #FFFFFF;
-            --dim: #888888;
+            --dim: #777777;
             --font: 'JetBrains Mono', monospace;
         }
 
@@ -25,28 +25,71 @@
             background-color: var(--black);
             color: var(--text);
             font-family: var(--font);
-            line-height: 1.5;
+            line-height: 1.6;
             overflow-x: hidden;
+            position: relative;
         }
 
-        /* Slide / Card Container Framework */
+        /* Subtle Motion Texture Layer */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -50%; left: -50%; right: -50%; bottom: -50%;
+            width: 200%; height: 200%;
+            background: transparent url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3联%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.02"/%3E%3C/svg%3E') repeat;
+            animation: noise-shift 0.2s infinite steps(2);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes noise-shift {
+            0% { transform: translate(0,0); }
+            100% { transform: translate(5px, 5px); }
+        }
+
+        /* Fluid Desktop Grid Container */
         .story-container {
-            max-width: 480px;
+            width: 100%;
+            max-width: 100vw;
             margin: 0 auto;
-            padding: 0 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .story-card {
-            min-height: 95vh;
+            width: 100%;
+            max-width: 500px;
+            min-height: 90vh;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             border: 1px solid var(--border);
             background-color: var(--dark);
-            margin: 20px 0 40px 0;
-            padding: 35px 25px;
+            margin: 30px 0;
+            padding: 40px 30px;
             position: relative;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            transition: border-color 0.3s ease;
+        }
+        .story-card:hover { border-color: var(--orange); }
+
+        /* Media Queries for Desktop Full-Screen Scaling */
+        @media (min-width: 1025px) {
+            .story-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 30px;
+                padding: 40px;
+            }
+            .story-card {
+                width: calc(50% - 30px);
+                max-width: 460px;
+                min-height: 85vh;
+                margin: 0;
+            }
         }
 
         .card-header {
@@ -65,7 +108,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 25px 0;
+            padding: 20px 0;
         }
 
         .card-footer {
@@ -77,21 +120,27 @@
             font-size: 0.75rem;
         }
 
-        /* Typography & Layout Accents */
-        h1 { font-size: 2rem; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: var(--text); }
-        h1 span { color: var(--orange); }
-        h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--orange); margin-bottom: 15px; }
-        p { font-size: 0.9rem; color: #DCDCDC; margin-bottom: 15px; }
-        p.accent-text { color: var(--dim); font-size: 0.85rem; border-left: 2px solid var(--orange); padding-left: 12px; }
+        h1 { font-size: 1.8rem; font-weight: 800; text-transform: uppercase; line-height: 1.1; letter-spacing: -1px; }
+        h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--orange); margin-bottom: 15px; }
+        p { font-size: 0.85rem; color: #CCCCCC; margin-bottom: 15px; }
+        p.accent-text { color: var(--dim); font-size: 0.8rem; border-left: 2px solid var(--orange); padding-left: 12px; }
 
-        /* Graphic Telemetry Blocks */
         .score-display {
-            font-size: 4rem;
+            font-size: 4.5rem;
             font-weight: 800;
             color: var(--orange);
             line-height: 1;
-            margin: 10px 0;
-            letter-spacing: -2px;
+            margin: 15px 0;
+            letter-spacing: -3px;
+        }
+
+        /* Symbolic Generator Terminal Canvas */
+        .sigil-canvas {
+            width: 100%;
+            height: 120px;
+            background-color: var(--grey);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
         }
 
         .data-grid {
@@ -103,30 +152,24 @@
         .grid-item {
             background-color: var(--grey);
             border: 1px solid var(--border);
-            padding: 12px;
-            text-align: left;
+            padding: 14px;
         }
-        .grid-label { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
-        .grid-value { font-size: 1.2rem; font-weight: 600; color: var(--text); margin-top: 4px; }
+        .grid-label { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; }
+        .grid-value { font-size: 1.3rem; font-weight: 600; color: var(--text); margin-top: 4px; }
 
-        /* Share Button Actions */
         .share-btn {
             background: none;
             border: 1px solid var(--orange);
             color: var(--orange);
             padding: 8px 16px;
             font-family: var(--font);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            text-transform: uppercase;
             cursor: pointer;
-            letter-spacing: 1px;
+            text-transform: uppercase;
             transition: all 0.2s ease;
         }
-        .share-btn:hover {
-            background-color: var(--orange);
-            color: var(--black);
-        }
+        .share-btn:hover { background-color: var(--orange); color: var(--black); }
     </style>
 </head>
 <body>
@@ -135,100 +178,116 @@
 
         <section class="story-card">
             <div class="card-header">
-                <div>SYSTEM // TELEMETRY INITIALIZED</div>
+                <div>SYSTEM // INITIALIZATION</div>
                 <div class="highlight">01/04</div>
             </div>
             <div class="card-body">
-                <h2>System Identity Verified</h2>
+                <h2>Radical Identity Verified</h2>
                 <h1 style="margin-bottom: 20px;">{{currentName}}</h1>
-                <p>Structural alignment scanning finalized for architectural node <strong>{{fullName}}</strong>.</p>
-                <p class="accent-text">Temporal Coordinate Record: {{birthDate}}<br>System Registry Footprint: {{matrixId}}</p>
+                <p>Gnothological calculation sequence finalized for active spatial node: <strong>{{fullName}}</strong>.</p>
+                <p class="accent-text">Temporal Log: {{birthDate}}<br>Registry Hash: {{matrixId}}</p>
             </div>
             <div class="card-footer">
-                <span style="color: var(--dim);">SCROLL TO EXTRACT DATA</span>
+                <span style="color: var(--dim);">METRIC DRIFT DETECTED</span>
                 <span>↓↓</span>
             </div>
         </section>
 
         <section class="story-card">
             <div class="card-header">
-                <div>CORE LOGIC MATRIX // VARIANCE</div>
+                <div>CORE VARIANCE ARRAY</div>
                 <div class="highlight">02/04</div>
             </div>
-            <div class="card-body" style="text-align: center;">
+            <div class="card-body">
                 <h2>Unified Soul Print Core (USPC)</h2>
                 <div class="score-display">{{uspcScore}}</div>
-                <p style="margin-top: 15px; text-align: left;">Your core blueprint profile calculates out to an exact system convergence archetypal framework of:</p>
-                <h1 style="font-size: 1.5rem; text-align: left; margin-top: 10px; color: var(--orange);">{{archetype}}</h1>
-                <p style="color: var(--dim); font-size: 0.8rem; text-align: left; margin-top: 5px;">// Blueprint Template Sub-classification: {{archSubtitle}}</p>
+                <p>System profile matches the structural current classification signature of:</p>
+                <h1 style="font-size: 1.4rem; color: var(--orange); margin: 5px 0 15px 0;">{{archetype}}</h1>
+                <canvas class="sigil-canvas" id="sigilCanvas"></canvas>
+                <p style="color: var(--dim); font-size: 0.75rem;">// Blueprint Profile Sub-classification: {{archSubtitle}}</p>
             </div>
             <div class="card-footer">
-                <span>PLATH ENGINE V1.0</span>
+                <span>RADICAL COMPLETE</span>
                 <span>↓↓</span>
             </div>
         </section>
 
         <section class="story-card">
             <div class="card-header">
-                <div>BLUEPRINT DEPLOYMENT // SYSTEM CORE</div>
+                <div>BLUEPRINT DEPLOYMENT MATRIX</div>
                 <div class="highlight">03/04</div>
             </div>
             <div class="card-body">
                 <h2>Strategic Profile Assessment</h2>
-                <p style="font-size: 0.85rem; margin-bottom: 20px;">{{archDesc}}</p>
+                <p style="font-size: 0.8rem; color: #FFF; margin-bottom: 15px;">{{archDesc}}</p>
                 
-                <h2 style="font-size: 0.75rem; color: #FFF; border-bottom: 1px solid var(--border); padding-bottom: 4px;">Systemic Liability (Shadow Vector)</h2>
-                <p style="font-size: 0.8rem; color: var(--dim); margin-bottom: 20px;">{{archShadow}}</p>
+                <h2 style="font-size: 0.7rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 8px;">Systemic Liability (Shadow Vector)</h2>
+                <p style="font-size: 0.8rem; color: var(--dim); margin-bottom: 15px;">{{archShadow}}</p>
                 
-                <h2 style="font-size: 0.75rem; color: #FFF; border-bottom: 1px solid var(--border); padding-bottom: 4px;">Execution Integration Architecture</h2>
+                <h2 style="font-size: 0.7rem; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 8px;">Execution Integration Architecture</h2>
                 <p style="font-size: 0.8rem; color: var(--dim); margin-bottom: 0;">{{archStrategy}}</p>
             </div>
             <div class="card-footer">
-                <span>INTEGRATION SECURE</span>
+                <span>BLUEPRINT DEPLOYED</span>
                 <span>↓↓</span>
             </div>
         </section>
 
         <section class="story-card">
             <div class="card-header">
-                <div>METRIC DATA MATRIX // VECTOR COMPLETE</div>
+                <div>VECTOR MECHANICS RESOLUTION</div>
                 <div class="highlight">04/04</div>
             </div>
             <div class="card-body">
                 <h2>Calculated Structural Coordinates</h2>
-                <p>Your calculated system integer coordinates are broken down below across the key numeric layers:</p>
-                
                 <div class="data-grid">
-                    <div class="grid-item">
-                        <div class="grid-label">Life Path Vector</div>
-                        <div class="grid-value" style="color: var(--orange);">{{lifePath}}</div>
-                    </div>
-                    <div class="grid-item">
-                        <div class="grid-label">Expression Coeff.</div>
-                        <div class="grid-value">{{expression}}</div>
-                    </div>
-                    <div class="grid-item">
-                        <div class="grid-label">Subconscious Node</div>
-                        <div class="grid-value">{{subconscious}}</div>
-                    </div>
-                    <div class="grid-item">
-                        <div class="grid-label">Habit Climax (HCV)</div>
-                        <div class="grid-value">{{hcv}}</div>
-                    </div>
+                    <div class="grid-item"><div class="grid-label">Radical Blueprint</div><div class="grid-value" style="color: var(--orange);">{{lifePath}}</div></div>
+                    <div class="grid-item"><div class="grid-label">Evolutionary Traj.</div><div class="grid-value">{{expression}}</div></div>
+                    <div class="grid-item"><div class="grid-label">Implicit Undercurrent</div><div class="grid-value">{{subconscious}}</div></div>
+                    <div class="grid-item"><div class="grid-label">Kinetic Freq (HCV)</div><div class="grid-value">{{hcv}}</div></div>
                 </div>
-                
                 <p class="accent-text" style="margin-top: 20px; font-size: 0.75rem;">
-                    <strong>Active Anchor Alignment:</strong> {{lifePathTitle}}<br>
-                    <strong>Calculated Tension Divergence Gap:</strong> {{alignment}}
+                    <strong>Active Alignment Model:</strong> {{lifePathTitle}}<br>
+                    <strong>Vector Focus:</strong> {{lifePathDesc}}<br>
+                    <strong>Calculated Divergence Tension Gap:</strong> {{alignment}}
                 </p>
             </div>
             <div class="card-footer">
-                <button class="share-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('Secure profile link copied to deployment clipboard.');">Share Telemetry Matrix</button>
-                <span style="color: var(--dim);">SYSTEM STABLE // END</span>
+                <button class="share-btn" onclick="navigator.clipboard.writeText(window.location.href); alert('Secure profile link copied.');">Share Telemetry</button>
+                <span>SYSTEM STABLE // END</span>
             </div>
         </section>
 
     </div>
 
+    <script>
+        // Randomized Generative Symbolic Sigil Layout Engine
+        function renderSigil() {
+            const canvas = document.getElementById('sigilCanvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.offsetWidth;
+            const h = canvas.height = canvas.offsetHeight;
+            
+            ctx.strokeStyle = '#FF3300';
+            ctx.lineWidth = 1.5;
+            ctx.opacity = 0.7;
+
+            // Generate modular grid anchors
+            const step = 20;
+            ctx.beginPath();
+            for(let x = step; x < w; x += step) {
+                if(Math.random() > 0.6) {
+                    ctx.moveTo(x, Math.random() * h);
+                    ctx.lineTo(x + step * (Math.floor(Math.random() * 3)), Math.random() * h);
+                }
+            }
+            // Draw crossbars and circles dynamically
+            ctx.arc(w/2, h/2, 15, 0, Math.PI * 2);
+            ctx.moveTo(w/2 - 40, h/2); ctx.lineTo(w/2 + 40, h/2);
+            ctx.stroke();
+        }
+        window.onload = renderSigil;
+    </script>
 </body>
 </html>
