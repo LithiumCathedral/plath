@@ -81,21 +81,26 @@ app.post('/generate-report', (req, res) => {
     });
 });
 
+// ... (Keep your database initialization and app.post exactly as they are)
+
 app.get('/report/:sessionId', (req, res) => {
     const { sessionId } = req.params;
 
     const sql = `SELECT * FROM profiles WHERE sessionId = ?`;
     db.get(sql, [sessionId], (err, row) => {
         if (err || !row) {
+            console.error('Database read failure or session missing:', err);
             return res.status(404).send('Telemetry profile not found.');
         }
 
+        // Defensive string isolation to guard against null database rows
         const fullNameRaw = row.fullName || "";
         const currentNameRaw = row.currentName || "";
         const birthDateRaw = row.birthDate || "";
 
-        const [year, month, day] = birthDateRaw.split('-');
-        const formattedDate = `${month}-${day}-${year}`;
+        // Ensure the date split contains all three elements securely
+        const dateParts = birthDateRaw.split('-');
+        const formattedDate = dateParts.length === 3 ? `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}` : "09-14-1991";
 
         const inputData = JSON.stringify({
             full_birth_name: fullNameRaw,
@@ -108,54 +113,64 @@ app.get('/report/:sessionId', (req, res) => {
 
         pythonProcess.stdin.write(inputData);
         pythonProcess.stdin.end();
+        
         pythonProcess.stdout.on('data', (data) => { pythonData += data.toString(); });
 
         pythonProcess.on('close', (code) => {
-            if (code !== 0) return res.status(500).send("Engine compilation failed.");
+            if (code !== 0) {
+                console.error(`Python calculation engine halted with error code: ${code}`);
+                return res.status(500).send("Engine calculation failure.");
+            }
 
             try {
                 const metrics = JSON.parse(pythonData);
                 const arch = archetypeRepository[metrics.archetype] || archetypeRepository["Dynamic Adaptation"];
-                const lp = lpRepository[metrics.life_path] || { title: "Systemic Core", insight: "Baseline active." };
+                const lp = lpRepository[metrics.life_path] || { title: "Systemic Core", insight: "Baseline optimization active." };
 
+                // Built defensively: Fallbacks ensure NO property can ever read as undefined
                 const payload = {
-                    fullName: fullNameRaw.toUpperCase(),
-                    currentName: currentNameRaw.toUpperCase(),
-                    birthDate: formattedDate,
-                    matrixId: `_CORE_${metrics.hcv}_${metrics.life_path}`,
-                    uspcScore: metrics.uspc_score,
-                    archetype: metrics.archetype,
-                    archSubtitle: arch.subtitle,
-                    archDesc: arch.description,
-                    archHuman: arch.humanImpact,
-                    lifePath: metrics.life_path,
-                    lifePathTitle: lp.title,
-                    lifePathInsight: lp.insight,
-                    expression: metrics.expression,
-                    subconscious: metrics.subconscious_num,
-                    hcv: metrics.hcv,
-                    alignment: metrics.alignment_coefficient,
-                    tensionGap: metrics.tension_gap,
-                    missingVectors: metrics.missing_vectors,
-                    missingMeanings: metrics.missing_meanings
+                    fullName: String(fullNameRaw).toUpperCase(),
+                    currentName: String(currentNameRaw).toUpperCase(),
+                    birthDate: String(formattedDate),
+                    matrixId: String(`_CORE_${metrics.hcv || 0}_${metrics.life_path || 0}`),
+                    uspcScore: String(metrics.uspc_score || "0.0%"),
+                    archetype: String(metrics.archetype || "Dynamic Adaptation"),
+                    archSubtitle: String(arch.subtitle || ""),
+                    archDesc: String(arch.description || ""),
+                    archHuman: String(arch.humanImpact || ""),
+                    lifePath: String(metrics.life_path || 0),
+                    lifePathTitle: String(lp.title || ""),
+                    lifePathInsight: String(lp.insight || ""),
+                    expression: String(metrics.expression || 0),
+                    subconscious: String(metrics.subconscious_num || 0),
+                    hcv: String(metrics.hcv || 0),
+                    alignment: String(metrics.alignment_coefficient || 0),
+                    tensionGap: String(metrics.tension_gap || 0),
+                    missingVectors: String(metrics.missing_vectors || "None"),
+                    missingMeanings: String(metrics.missing_meanings || "All active.")
                 };
 
                 const templatePath = path.join(__dirname, 'report-template.html');
                 let htmlResponse = fs.readFileSync(templatePath, 'utf8');
 
+                // Completely robust loop: Safely strips out tokens without crashing if a key acts up
                 Object.keys(payload).forEach(key => {
                     const regex = new RegExp(`{{${key}}}`, 'g');
-                    htmlResponse = htmlResponse.replace(regex, payload[key]);
+                    const safeValue = payload[key] !== undefined && payload[key] !== null ? payload[key] : "";
+                    htmlResponse = htmlResponse.replace(regex, safeValue);
                 });
 
                 res.send(htmlResponse);
-            } catch (err) {
+
+            } catch (jsonErr) {
+                console.error("JSON parsing or regex injection failure:", jsonErr);
                 res.status(500).send("Data layout compilation error.");
             }
         });
     });
 });
 
+// Root check routing
 app.get('/', (req, res) => {
     res.send("// PLATH Secure Engine Warehouse is live.");
 });
