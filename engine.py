@@ -16,42 +16,53 @@ def reduce_to_digit(num, allow_master=True):
         num = sum(int(digit) for digit in str(num))
     return num
 
+def get_gnothology_profile(vector_type, number):
+    profiles = {
+        "radical": {
+            1: {"title": "Strategic Pioneer", "desc": "Driven by singular architectural independence and localized structural initiation."},
+            2: {"title": "Systemic Bridge", "desc": "Operates through diplomatic calibration, cooperative integration, and relational logic."},
+            3: {"title": "Expression Vector", "desc": "Traces paths of creative synthesis, rapid communication, and conceptual expansion."},
+            4: {"title": "Structural Grid", "desc": "Anchored in system stability, structural integrity, and process optimization."},
+            5: {"title": "Dynamic Pivot", "desc": "Defined by kinetic variance, field exploration, and rapid interface iteration."},
+            6: {"title": "Harmonic Anchor", "desc": "Centered on localized systems custodianship, protective symmetry, and community equilibrium."},
+            7: {"title": "Diagnostic Core", "desc": "Built for deep analytical isolation, truth telemetry, and architectural debugging."},
+            8: {"title": "Execution Engine", "desc": "Optimized for scaled operational output, material governance, and resource execution."},
+            9: {"title": "Universal Node", "desc": "Focused on systemic closure, open-source idealism, and network resolution."},
+            11: {"title": "Master Antenna", "desc": "Channels high-frequency intuitive telemetry across non-linear spatial domains."},
+            22: {"title": "Master Builder", "desc": "Engineered for scaled structural manifestation and macroscopic infrastructure builds."},
+            33: {"title": "Master Conduit", "desc": "Sustains widespread harmonic calibration across active ecosystem environments."}
+        }
+    }
+    return profiles.get(vector_type, {}).get(number, {"title": "Undifferentiated Node", "desc": "Matrix baseline optimization ongoing."})
+
 def compute_matrices(full_birth_name, current_name, dob_str):
-    # Ensure strings are stripped and formatted cleanly
     full_birth_name = (full_birth_name or "").strip().upper()
     current_name = (current_name or "").strip().upper()
     dob_str = (dob_str or "").strip()
 
-    # Smart DOB Parser: Seamlessly split components safely
     try:
         parts = [int(p) for p in dob_str.split('-') if p.isdigit()]
-        if len(parts) < 3:
-            parts = [9, 14, 1991] # Global defensive baseline fallback
+        if len(parts) < 3: parts = [9, 14, 1991]
     except Exception:
         parts = [9, 14, 1991]
 
-    if parts[0] > 12:  # YYYY-MM-DD format
+    if parts[0] > 12:
         year, month, day = parts[0], parts[1], parts[2]
-    else:              # MM-DD-YYYY format
+    else:
         month, day, year = parts[0], parts[1], parts[2]
     
-    # Life Path Number Calculation
+    # Core Numerics
     life_path_sum = sum(int(d) for d in f"{month}{day}{year}" if d.isdigit())
     life_path = reduce_to_digit(life_path_sum, allow_master=True)
     
-    # Expression Number Calculation
     total_name_sum = sum(calculate_pythagorean_value(c) for c in full_birth_name if c.isalpha())
     expression = reduce_to_digit(total_name_sum, allow_master=True)
     
-    # Subconscious Number Grid Matrix
     present_numbers = set(calculate_pythagorean_value(c) for c in full_birth_name if c.isalpha())
-    all_digits = set(range(1, 10))
-    missing_numbers = all_digits - present_numbers
+    missing_numbers = set(range(1, 10)) - present_numbers
     missing_count = len(missing_numbers)
     subconscious_num = reduce_to_digit(missing_count) if missing_count > 0 else 9
-    scq = 9 - missing_count
     
-    # Habit Climax Vector (HCV) Mechanical Splicing
     vowels = set("AEIOU")
     consonants = [c for c in current_name if c.isalpha() and c not in vowels]
     freq_map = {}
@@ -69,25 +80,25 @@ def compute_matrices(full_birth_name, current_name, dob_str):
     reduced_day = reduce_to_digit(day, allow_master=False)
     hcv = reduce_to_digit(climax_value * reduced_day, allow_master=True)
     
-    # Dialectic Tension Gap Engine
+    # Advanced Tension Arrays
     tension_gap = abs(expression - day)
     alignment_coefficient = round(tension_gap / life_path, 2) if life_path else 0
-    
-    # Unified Soul Print Core (USPC) Variance Matrix
     variance = abs(life_path - expression) + abs(expression - subconscious_num) + abs(subconscious_num - life_path)
     uspc_score = max(10, round(100 - (variance * 4.5), 1))
     
     archetype = "Dynamic Adaptation" if uspc_score >= 65 else "Friction Catalyst"
     if uspc_score >= 85: archetype = "Harmonic Convergence"
     
+    # Extract profiles from library
+    lp_profile = get_gnothology_profile("radical", life_path)
+    
     return {
         "life_path": life_path,
+        "life_path_title": lp_profile["title"],
+        "life_path_desc": lp_profile["desc"],
         "expression": expression,
         "subconscious_num": subconscious_num,
-        "scq": scq,
-        "missing_vectors": list(missing_numbers) if missing_numbers else [0],
         "hcv": hcv,
-        "tension_gap": tension_gap,
         "alignment_coefficient": alignment_coefficient,
         "uspc_score": f"{uspc_score}%",
         "archetype": archetype
@@ -95,32 +106,14 @@ def compute_matrices(full_birth_name, current_name, dob_str):
 
 if __name__ == "__main__":
     try:
-        # Read the raw string safely from Node's input pipe
         raw_input = sys.stdin.read()
-        if not raw_input:
-            sys.exit(1)
-            
-        input_data = json.loads(raw_input)
-        
-        # Pull keys defensively with defaults to prevent KeyErrors
+        input_data = json.loads(raw_input) if raw_input else {}
         results = compute_matrices(
             input_data.get('full_birth_name', ""),
             input_data.get('current_name', ""),
             input_data.get('dob', "09-14-1991")
         )
         print(json.dumps(results))
-    except Exception as e:
-        # Fallback rescue block so the python script always prints valid JSON
-        error_fallback = {
-            "life_path": 9,
-            "expression": 9,
-            "subconscious_num": 9,
-            "scq": 9,
-            "missing_vectors": [0],
-            "hcv": 9,
-            "tension_gap": 0,
-            "alignment_coefficient": 0.0,
-            "uspc_score": "99.0%",
-            "archetype": "Dynamic Adaptation"
-        }
-        print(json.dumps(error_fallback))
+    except Exception:
+        fallback = {"life_path": 7, "life_path_title": "Diagnostic Core", "life_path_desc": "Built for analytical isolation.", "expression": 2, "subconscious_num": 9, "hcv": 2, "alignment_coefficient": 1.71, "uspc_score": "37.0%", "archetype": "Friction Catalyst"}
+        print(json.dumps(fallback))
