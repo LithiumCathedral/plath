@@ -1,7 +1,7 @@
 {
   "name": "plath-engine-backend",
   "version": "1.0.0",
-  "description": "Telemetry calculations generation server",
+  "description": "Telemetry calculations generation server with Python integration",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
