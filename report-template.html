@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <meta property="og:title" content="PLATH // Engine Matrix Finalized">
-    <meta property="og:description" content="Telemetry output confirmed for profile {{matrixId}}. Access your structural system profile alignment score.">
+    <meta property="og:description" content="Telemetry output confirmed for profile {{{matrixId}}}. Access your structural system profile alignment score.">
     <meta property="og:type" content="website">
     
     <style>
@@ -85,4 +85,73 @@
         h1 { font-size: 2rem; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: var(--text); }
         h1 span { color: var(--orange); }
         h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--orange); margin-bottom: 15px; }
-        p { font-size: 0.9rem; color: #DCDCDC; margin-bottom: 15px
+        p { font-size: 0.9rem; color: #DCDCDC; margin-bottom: 15px; }
+        p.accent-text { color: var(--dim); font-size: 0.85rem; border-left: 2px solid var(--orange); padding-left: 12px; }
+
+        /* Graphic Telemetry Blocks */
+        .score-display {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--orange);
+            line-height: 1;
+            margin: 10px 0;
+            letter-spacing: -2px;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .grid-item {
+            background-color: var(--grey);
+            border: 1px solid var(--border);
+            padding: 12px;
+            text-align: left;
+        }
+        .grid-label { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+        .grid-value { font-size: 1.2rem; font-weight: 600; color: var(--text); margin-top: 4px; }
+
+        /* Share Button Actions */
+        .share-btn {
+            background: none;
+            border: 1px solid var(--orange);
+            color: var(--orange);
+            padding: 8px 16px;
+            font-family: var(--font);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+        .share-btn:hover {
+            background-color: var(--orange);
+            color: var(--black);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="story-container">
+
+        <section class="story-card">
+            <div class="card-header">
+                <div>SYSTEM // TELEMETRY INITIALIZED</div>
+                <div class="highlight">01/04</div>
+            </div>
+            <div class="card-body">
+                <h2>System Identity Verified</h2>
+                <h1 style="margin-bottom: 20px;">{{{currentName}}}</h1>
+                <p>Structural alignment scanning finalized for architectural node <strong>{{{fullName}}}</strong>.</p>
+                <p class="accent-text">Temporal Coordinate Record: {{{birthDate}}}<br>System Registry Footprint: {{{matrixId}}}</p>
+            </div>
+            <div class="card-footer">
+                <span style="color: var(--dim);">SCROLL TO EXTRACT DATA</span>
+                <span>↓↓</span>
+            </div>
+        </section>
+
+        <section class="story-card">
