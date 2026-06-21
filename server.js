@@ -17,7 +17,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.error('Database connection crash:', err);
     } else {
         console.log('// PLATH Local SQLite Engine initialized.');
-        // Establish permanent data schema table
         db.run(`CREATE TABLE IF NOT EXISTS profiles (
             sessionId TEXT PRIMARY KEY,
             email TEXT,
@@ -29,7 +28,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
-// Content Repository Matrix for Archetype Profiles
 const archetypeRepository = {
     "Harmonic Convergence": {
         subtitle: "The Synthesized Network Node",
@@ -63,7 +61,6 @@ const lpRepository = {
     33: { title: "Master Conduit", insight: "You serve as an absolute harmonic stabilizer, radiating transformative systemic alignment across widespread networks." }
 };
 
-// 1. PRIMARY MONETIZATION ROUTE (Receives front-end inputs and routes to database step)
 app.post('/generate-report', (req, res) => {
     const { email, fullName, currentName, birthDate } = req.body;
 
@@ -71,46 +68,41 @@ app.post('/generate-report', (req, res) => {
         return res.status(400).send('Missing critical identity anchors.');
     }
 
-    // Generate a secure, 32-character crypto-hex string to act as the report's permalink ID
     const sessionId = crypto.randomBytes(16).toString('hex');
     const timestamp = Date.now();
 
-    // Commit payload details to the database
     const sql = `INSERT INTO profiles (sessionId, email, fullName, currentName, birthDate, timestamp) VALUES (?, ?, ?, ?, ?, ?)`;
     db.run(sql, [sessionId, email, fullName, currentName, birthDate, timestamp], (err) => {
         if (err) {
             console.error('Database write state failure:', err);
             return res.status(500).send('Database storage write fault.');
         }
-
-        // REDIRECT FLOW: Direct the user cleanly to their unique, sharable URL path
-        // (Once Stripe hook is added, this is where you'd point to the Stripe payment checkout url instead)
         res.redirect(`/report/${sessionId}`);
     });
 });
 
-// 2. STABLE RETRIEVAL PATHWAY FOR REUSE AND CROSS-DEVICE SHARING
 app.get('/report/:sessionId', (req, res) => {
     const { sessionId } = req.params;
 
     const sql = `SELECT * FROM profiles WHERE sessionId = ?`;
     db.get(sql, [sessionId], (err, row) => {
         if (err || !row) {
-            return res.status(404).send('Telemetry profile not found or expired registry parameters.');
+            return res.status(404).send('Telemetry profile not found.');
         }
 
-        // Extract saved data out from database storage record safely
-        const { fullName, currentName, birthDate } = row;
-        const [year, month, day] = birthDate.split('-');
+        const fullNameRaw = row.fullName || "";
+        const currentNameRaw = row.currentName || "";
+        const birthDateRaw = row.birthDate || "";
+
+        const [year, month, day] = birthDateRaw.split('-');
         const formattedDate = `${month}-${day}-${year}`;
 
         const inputData = JSON.stringify({
-            full_birth_name: fullName,
-            current_name: currentName,
+            full_birth_name: fullNameRaw,
+            current_name: currentNameRaw,
             dob: formattedDate
         });
 
-        // Run calculation matrices dynamically on page execution
         const pythonProcess = spawn('python3', [path.join(__dirname, 'engine.py')]);
         let pythonData = '';
 
@@ -127,8 +119,8 @@ app.get('/report/:sessionId', (req, res) => {
                 const lp = lpRepository[metrics.life_path] || { title: "Systemic Core", insight: "Baseline active." };
 
                 const payload = {
-                    fullName: fullName.toUpperCase(),
-                    currentName: currentName.toUpperCase(),
+                    fullName: fullNameRaw.toUpperCase(),
+                    currentName: currentNameRaw.toUpperCase(),
                     birthDate: formattedDate,
                     matrixId: `_CORE_${metrics.hcv}_${metrics.life_path}`,
                     uspcScore: metrics.uspc_score,
@@ -165,7 +157,7 @@ app.get('/report/:sessionId', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send("// PLATH Secure Engine Warehouse with persistent DB records is live.");
+    res.send("// PLATH Secure Engine Warehouse is live.");
 });
 
 const PORT = process.env.PORT || 3000;
