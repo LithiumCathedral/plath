@@ -1,12 +1,13 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process'); // Needed to run Python
+const { spawn } = require('child_process');
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Main dynamic report route
 app.post('/generate-report', (req, res) => {
     try {
         const { fullName, currentName, birthDate } = req.body;
@@ -19,7 +20,7 @@ app.post('/generate-report', (req, res) => {
         const [year, month, day] = birthDate.split('-');
         const formattedDate = `${month}-${day}-${year}`;
 
-        // Prepare the payload data for the Python script
+        // Prepare payload for Python
         const inputData = JSON.stringify({
             full_birth_name: fullName,
             current_name: currentName,
@@ -31,11 +32,9 @@ app.post('/generate-report', (req, res) => {
 
         let pythonData = '';
         
-        // Feed the data into Python's standard input stream
         pythonProcess.stdin.write(inputData);
         pythonProcess.stdin.end();
 
-        // Capture data output from Python
         pythonProcess.stdout.on('data', (data) => {
             pythonData += data.toString();
         });
@@ -46,7 +45,6 @@ app.post('/generate-report', (req, res) => {
                 return res.status(500).send("Engine calculation failure.");
             }
 
-            // Parse the real mathematical results back from Python
             const metrics = JSON.parse(pythonData);
 
             // Generate customized narrative based directly on real calculation values
@@ -64,7 +62,7 @@ app.post('/generate-report', (req, res) => {
                 Telemetry resolution finalized. The data ownership loop remains entirely secure, uncompromised, and perfectly flat.
             `;
 
-            // Load HTML Template and inject the real calculated metrics
+            // Load HTML Template and inject variables
             const templatePath = path.join(__dirname, 'report-template.html');
             let htmlResponse = fs.readFileSync(templatePath, 'utf8');
 
@@ -72,7 +70,7 @@ app.post('/generate-report', (req, res) => {
                 .replace(/{{fullName}}/g, fullName.toUpperCase())
                 .replace(/{{currentName}}/g, currentName.toUpperCase())
                 .replace(/{{birthDate}}/g, formattedDate)
-                .replace(/{{matrixId}}/g, `_CORE_${metrics.hcv}`) // Uses real Habit Climax Vector output
+                .replace(/{{matrixId}}/g, `_CORE_${metrics.hcv}`)
                 .replace(/{{generatedStory}}/g, uniqueStory);
 
             res.send(htmlResponse);
@@ -82,6 +80,16 @@ app.post('/generate-report', (req, res) => {
         console.error("Engine Fault: ", error);
         res.status(500).send("Internal System Error: Telemetry engine collapsed.");
     }
+});
+
+// Fallback safety route so the root address gives an active message instead of an error
+app.get('/', (req, res) => {
+    res.send("// PLATH Engine backend factory is live and listening on port 8080.");
+});
+
+// Fallback safety route to check GET requests to /generate-report
+app.get('/generate-report', (req, res) => {
+    res.send("Missing critical data anchors. Please submit via the frontend portal.");
 });
 
 const PORT = process.env.PORT || 3000;
