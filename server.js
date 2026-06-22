@@ -40,35 +40,14 @@ const lpRepository = {
     33: { title: "Master Conduit", insight: "You serve as an absolute harmonic stabilizer, radiating transformative systemic alignment across widespread networks." }
 };
 
-// Main processing engine endpoint
+// DIRECT ACTION PATHWAY: Computes and returns the 9-slide report immediately on form POST
 app.post('/generate-report', (req, res) => {
     try {
         const { email, fullName, currentName, birthDate } = req.body;
 
         if (!fullName || !currentName || !birthDate) {
-            return res.status(400).send('Missing identity parameters.');
+            return res.status(400).send('Error: Missing identity parameter anchors.');
         }
-
-        // Pack the parameters into a secure Base64 url-safe token block
-        const dataPayload = JSON.stringify({ email, fullName, currentName, birthDate });
-        const encodedToken = Buffer.from(dataPayload).toString('base64url');
-
-        // Redirect instantly to the shareable query permalink
-        res.redirect(`/report?v=${encodedToken}`);
-    } catch (err) {
-        res.status(500).send("Generation routine collapsed.");
-    }
-});
-
-// The Shareable multi-device link interface route
-app.get('/report', (req, res) => {
-    try {
-        const token = req.query.v;
-        if (!token) return res.status(400).send("Missing security token parameters.");
-
-        // Decode string back into raw system values safely
-        const rawDecoded = Buffer.from(token, 'base64url').toString('utf8');
-        const { email, fullName, currentName, birthDate } = JSON.parse(rawDecoded);
 
         const [year, month, day] = birthDate.split('-');
         const formattedDate = `${month}-${day}-${year}`;
@@ -81,18 +60,23 @@ app.get('/report', (req, res) => {
 
         const pythonProcess = spawn('python3', [path.join(__dirname, 'engine.py')]);
         let pythonData = '';
+        let pythonError = '';
 
         pythonProcess.stdin.write(inputData);
         pythonProcess.stdin.end();
+        
         pythonProcess.stdout.on('data', (data) => { pythonData += data.toString(); });
+        pythonProcess.stderr.on('data', (data) => { pythonError += data.toString(); });
 
         pythonProcess.on('close', (code) => {
-            if (code !== 0) return res.status(500).send("Engine calculation failed.");
+            if (code !== 0) {
+                return res.status(500).send(`Engine processing halted. Code: ${code}. Trace: ${pythonError}`);
+            }
 
             try {
                 const metrics = JSON.parse(pythonData);
                 const arch = archetypeRepository[metrics.archetype] || archetypeRepository["Dynamic Adaptation"];
-                const lp = lpRepository[metrics.life_path] || { title: "Core Node", insight: "Optimization baseline." };
+                const lp = lpRepository[metrics.life_path] || { title: "Core Node", insight: "Optimization active." };
 
                 const payload = {
                     fullName: String(fullName).toUpperCase(),
@@ -113,7 +97,7 @@ app.get('/report', (req, res) => {
                     alignment: String(metrics.alignment_coefficient || 0),
                     tensionGap: String(metrics.tension_gap || 0),
                     missingVectors: String(metrics.missing_vectors || "None"),
-                    missingMeanings: String(metrics.missing_meanings || "All vectors active.")
+                    missingMeanings: String(metrics.missing_meanings || "All active parameters.")
                 };
 
                 const templatePath = path.join(__dirname, 'report-template.html');
@@ -125,18 +109,18 @@ app.get('/report', (req, res) => {
                 });
 
                 res.send(htmlResponse);
+
             } catch (jsonErr) {
-                res.status(500).send("Data layout compilation error.");
+                res.status(500).send(`Layout conversion error: ${jsonErr.message}. Raw: ${pythonData}`);
             }
         });
-    } catch (e) {
-        res.status(500).send("Report assembly error.");
+    } catch (globalErr) {
+        res.status(500).send(`Global handler crash: ${globalErr.message}`);
     }
 });
 
 app.get('/', (req, res) => { res.send("// PLATH Micro-Engine live."); });
 
-// CRITICAL FIX: Explicitly listen on port variable and bind to the global 0.0.0.0 network interface
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => { 
     console.log(`// System running smoothly and listening globally on port ${PORT}`); 
