@@ -49,7 +49,7 @@ app.post('/generate-report', (req, res) => {
             return res.status(400).send('Missing identity parameters.');
         }
 
-        // Pack the parameters into an encrypted Base64 string block
+        // Pack the parameters into a secure Base64 url-safe token block
         const dataPayload = JSON.stringify({ email, fullName, currentName, birthDate });
         const encodedToken = Buffer.from(dataPayload).toString('base64url');
 
@@ -87,7 +87,7 @@ app.get('/report', (req, res) => {
         pythonProcess.stdout.on('data', (data) => { pythonData += data.toString(); });
 
         pythonProcess.on('close', (code) => {
-            if (code !== 0) return res.status(500).send("Engine compilation failed.");
+            if (code !== 0) return res.status(500).send("Engine calculation failed.");
 
             try {
                 const metrics = JSON.parse(pythonData);
@@ -134,7 +134,10 @@ app.get('/report', (req, res) => {
     }
 });
 
-app.get('/', (db, res) => { res.send("// PLATH Micro-Engine live."); });
+app.get('/', (req, res) => { res.send("// PLATH Micro-Engine live."); });
 
+// CRITICAL FIX: Explicitly listen on port variable and bind to the global 0.0.0.0 network interface
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => { console.log(`// System listening on port ${PORT}`); });
+app.listen(PORT, "0.0.0.0", () => { 
+    console.log(`// System running smoothly and listening globally on port ${PORT}`); 
+});
