@@ -28,7 +28,7 @@
             line-height: 1.6;
         }
 
-        /* Generative Background Matrix Grid Background */
+        /* Generative Background Matrix Grid Mesh Background */
         body::before {
             content: "";
             position: fixed;
@@ -67,7 +67,7 @@
             position: relative;
         }
 
-        /* Responsive Desktop Layout: Flows cards edge-to-edge horizontally */
+        /* Responsive Desktop Framework Layout: Removes the box cage to let items flow edge-to-edge horizontally */
         @media (min-width: 1024px) {
             .story-container {
                 flex-direction: row;
@@ -77,3 +77,42 @@
                 padding: 50px;
             }
             .story-card {
+                width: calc(33.33% - 25px);
+                max-width: 420px;
+                min-height: 85vh;
+                margin: 0;
+            }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--dim);
+            letter-spacing: 1px;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .card-header .step-idx { color: var(--orange); font-weight: 600; }
+
+        .card-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 25px 0;
+        }
+
+        .card-footer {
+            border-top: 1px dashed var(--border);
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--dim);
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 800; text-transform: uppercase; line-height: 1.1; letter-spacing: -1px; }
+        h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--orange); margin-bottom: 12px; }
+        h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px;
